@@ -121,9 +121,10 @@ export async function submitEnquiry(
   }
 
   const direct = await postFormDataToFormSubmit(fields, null);
+  if (direct.ok) return { needsActivation: direct.needsActivation };
 
   const local = await postToFormSubmit(fields);
   if (local.ok) return { needsActivation: local.needsActivation };
 
-  throw new Error(direct.error || "Unable to send your enquiry. Please email sales@melighting.com.au.");
+  throw new Error(direct.error || local.error || "Unable to send your enquiry. Please email sales@melighting.com.au.");
 }

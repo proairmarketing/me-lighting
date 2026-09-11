@@ -2,7 +2,7 @@
  * Design direction: reference-matched contemporary architectural luxury.
  * Cinematic low-key imagery, warm-white editorial bands, precise linework, and restrained ME Gold accents.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Award,
@@ -338,6 +338,29 @@ export default function Home() {
   const [contactFileName, setContactFileName] = useState("");
   const [sending, setSending] = useState(false);
   const [bestSellerIndex, setBestSellerIndex] = useState(0);
+  const [marqueePaused, setMarqueePaused] = useState(false);
+  const marqueeResumeRef = useRef<number | null>(null);
+
+  const pauseMarquee = () => {
+    if (marqueeResumeRef.current !== null) {
+      window.clearTimeout(marqueeResumeRef.current);
+      marqueeResumeRef.current = null;
+    }
+    setMarqueePaused(true);
+  };
+
+  const resumeMarqueeSoon = () => {
+    if (marqueeResumeRef.current !== null) window.clearTimeout(marqueeResumeRef.current);
+    // Keep paused through Safari's click after pointerup/touchend
+    marqueeResumeRef.current = window.setTimeout(() => {
+      setMarqueePaused(false);
+      marqueeResumeRef.current = null;
+    }, 450);
+  };
+
+  useEffect(() => () => {
+    if (marqueeResumeRef.current !== null) window.clearTimeout(marqueeResumeRef.current);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -520,7 +543,14 @@ export default function Home() {
             </div>
             <p className="carousel-kicker"><span /> CONTINUOUSLY EXPLORING LIGHT</p>
           </div>
-          <div className="solution-carousel-shell solution-marquee" aria-label="Continuously moving lighting solutions">
+          <div
+            className={`solution-carousel-shell solution-marquee${marqueePaused ? " is-paused" : ""}`}
+            aria-label="Continuously moving lighting solutions"
+            onPointerDown={pauseMarquee}
+            onPointerUp={resumeMarqueeSoon}
+            onPointerCancel={resumeMarqueeSoon}
+            onPointerLeave={resumeMarqueeSoon}
+          >
             <div className="solution-grid">
               {[0, 1].map((group) => (
                 <div className="solution-marquee-group" key={group} aria-hidden={group === 1 ? "true" : undefined}>
